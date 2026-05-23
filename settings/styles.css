@@ -95,36 +95,28 @@ input[type="number"] {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    /* 改为顶部对齐 */
 }
 
 .site-info {
     flex-grow: 1;
     min-width: 0;
-    /* 允许内容收缩 */
     overflow: hidden;
-    /* 防止内容溢出 */
     margin-right: 25px;
 }
 
 .site-url {
     font-weight: bold;
     word-break: break-word;
-    /* 允许URL换行 */
     white-space: nowrap;
-    /* 单行显示 */
     overflow: hidden;
     text-overflow: ellipsis;
-    /* 超出显示省略号 */
     display: block;
 }
 
 .site-settings {
     display: flex;
     flex-wrap: wrap;
-    /* 允许换行 */
     gap: 8px;
-    /* 替代分隔符 */
     margin-top: 8px;
     font-size: 0.9em;
     color: #5f6368;
@@ -137,7 +129,7 @@ input[type="number"] {
 .site-actions {
     display: flex;
     gap: 8px;
-    min-width: 53px;
+    min-width: 110px;
 }
 
 .site-actions button {
