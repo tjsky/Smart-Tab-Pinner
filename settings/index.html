@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Smart Tab Pinner</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <h1>Smart Tab Pinner 设置页</h1>
+    <p>配置需要保持打开的网页和扩展页面</p>
+  </header>
+
+  <main>
+    <section>
+      <h2>管理固定标签页</h2>
+      
+      <div id="sites-list" class="sites-container"></div>
+      
+      <div class="add-site-form">
+        <div class="form-group">
+          <label for="site-pattern">检测 URL :</label>
+          <input type="text" id="site-pattern" placeholder="设置检测字段，可使用通配符“*”  如https://mail.google.com/* 或 chrome-extension://abcdefg/*">
+        </div>
+        
+        <div class="form-group">
+          <label for="site-url">实际 URL:</label>
+          <input type="text" id="site-url" placeholder="当检测到标签页不在时，应该打开的完整URL 如https://mail.google.com/mail/u/1/#inbox ">
+          <p class="help-text">对于匹配模式的简化版本，可以省略通配符</p>
+        </div>
+        
+        <div class="form-group">
+          <div class="checkbox-row">
+            <input type="checkbox" id="site-pinned" checked>
+            <label for="site-pinned">固定此标签页</label>
+          </div>
+          
+          <div class="checkbox-row">
+            <input type="checkbox" id="site-active">
+            <label for="site-active">前台打开（不选则后台静默打开）</label>
+          </div>
+        </div>
+        
+        <button id="add-site" class="primary-button">添加网站</button>
+      </div>
+    </section>
+    
+    <section>
+      <h2>全局设置</h2>
+      <div class="form-group">
+        <label for="check-interval">检查频率 (分钟):</label>
+        <input type="number" id="check-interval" min="1" max="120" value="5">
+      </div>
+    </section>
+    
+    <div class="actions-container">
+      <button id="save-config" class="primary-button">保存配置</button>
+      <button id="run-check" class="secondary-button">立即检查</button>
+    </div>
+  </main>
+  
+  <script src="main.js"></script>
+</body>
+</html>
