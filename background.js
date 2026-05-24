@@ -60,16 +60,14 @@ async function setConfig(newConfig) {
 
 
 // 8. 主功能：检查所有需要固定的标签页
-async function ensurePinnedTabs(tempSite = null) {
+async function ensurePinnedTabs(tempSite = null, forceBackground = false) {
   const config = await getConfig();
   let sitesToCheck = config?.sites ? [...config.sites] : [];
+  if (tempSite) sitesToCheck.push(tempSite);
+  if (sitesToCheck.length === 0) return null;
+  
+  let lastActionTabId = null;
 
-  if (tempSite) {
-    sitesToCheck.push(tempSite);
-  }
-  
-  if (sitesToCheck.length === 0) return;
-  
   for (const site of sitesToCheck) {
     try {
       const tabs = await chrome.tabs.query({ url: site.pattern });
@@ -77,31 +75,37 @@ async function ensurePinnedTabs(tempSite = null) {
       if (site.pinned && tabs.some(tab => tab.pinned)) continue;
       if (!site.pinned && tabs.length > 0) continue;
       
+      const shouldActive = forceBackground ? false : !!site.active;
+
       if (tabs.length > 0) {
         const exactMatchTab = tabs.find(tab => tab.url === site.url);
         if (exactMatchTab) {
-          await chrome.tabs.update(exactMatchTab.id, {
+          const updatedTab = await chrome.tabs.update(exactMatchTab.id, {
             pinned: site.pinned,
-            active: !!site.active
+            active: shouldActive
           });
+          lastActionTabId = updatedTab.id;
         } else {
-          await chrome.tabs.create({
+          const newTab = await chrome.tabs.create({
             url: site.url,
             pinned: site.pinned,
-            active: !!site.active
+            active: shouldActive
           });
+          lastActionTabId = newTab.id;
         }
       } else {
-        await chrome.tabs.create({
+        const newTab = await chrome.tabs.create({
           url: site.url,
           pinned: site.pinned,
-          active: !!site.active
+          active: shouldActive
         });
+        lastActionTabId = newTab.id;
       }
     } catch (error) {
       console.error(`[Smart Tab Pinner] 检测失败: ${error.message}`);
     }
   }
+  return lastActionTabId;
 }
 
 // 9. 处理来自设置页面的消息
@@ -115,7 +119,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     return true;
   }
   if (request.action === 'runManualCheck') {
-    ensurePinnedTabs(request.tempSite).then(() => sendResponse({ status: 'success' }));
+    ensurePinnedTabs(request.tempSite, request.forceBackground).then(tabId => {
+      sendResponse({ status: 'success', tabId: tabId });
+    });
     return true;
   }
 });

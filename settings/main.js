@@ -2,9 +2,15 @@ document.addEventListener('DOMContentLoaded', init);
 
 let currentConfig = null;
 let editingIndex = null;
+let hasOriginalSites = false;
 
 async function init() {
   currentConfig = await getConfig();
+  if (currentConfig && currentConfig.sites && currentConfig.sites.length > 0) {
+    hasOriginalSites = true; 
+  } else {
+    hasOriginalSites = false;
+  }
   renderSites(currentConfig.sites);
   document.getElementById('check-interval').value = currentConfig.checkInterval;
   document.getElementById('add-site').addEventListener('click', addNewSite);
@@ -35,7 +41,7 @@ async function addNewSite() {
 
   const hasValidScheme = pattern.includes('://') && !pattern.startsWith('://');
   if (!hasValidScheme) {
-    alert('URL匹配表达式错误，请检查您的输入！\n比如您是否遗漏了协议头，如：\n- https://*.google.com/*\n- chrome-extension://abcdefg/*');
+    alert('请输入合法的URL匹配表达式！\n比如您是否遗漏了协议头，如：\n- https://*.google.com/*\n- chrome-extension://abcdefg/*');
     return;
   }
   
@@ -48,19 +54,17 @@ async function addNewSite() {
   
   if (!currentConfig.sites) currentConfig.sites = [];
 
-  let isEditMode = (editingIndex !== null);
+  let isEditMode = (editingIndex !== null); 
 
   if (isEditMode) {
     currentConfig.sites[editingIndex] = siteConfig;
     editingIndex = null; 
-    
-    addButton.textContent = '添加网站';
+    addButton.textContent = '添加配置项';
     addButton.removeAttribute('style');
   } else {
     currentConfig.sites.push(siteConfig);
   }
   
-  // 清空表单
   patternInput.value = '';
   urlInput.value = '';
   document.getElementById('site-pinned').checked = true; 
@@ -69,7 +73,7 @@ async function addNewSite() {
   renderSites(currentConfig.sites);
 
   if (isEditMode) {
-    await saveConfig(false);
+    await saveConfig(false); 
     alert('修改成功！新配置已自动保存并生效。');
   }
 }
@@ -80,7 +84,7 @@ function renderSites(sites = []) {
   container.innerHTML = '';
   
   if (!sites || sites.length === 0) {
-    container.innerHTML = '<p class="empty-message">您尚未添加任何网站</p>';
+    container.innerHTML = '<p class="empty-message">您尚未添加任何配置</p>';
     return;
   }
   
@@ -130,7 +134,7 @@ function createSiteElement(site, index) {
     
     const addButton = document.getElementById('add-site');
     addButton.textContent = '确认修改';
-    addButton.style.background = '#e67e22';
+    addButton.style.background = '#e67e22'; 
     addButton.style.color = '#ffffff';
     
     document.querySelector('.add-site-form').scrollIntoView({ behavior: 'smooth' });
@@ -146,7 +150,6 @@ function createSiteElement(site, index) {
       editingIndex--;
     }
     renderSites(currentConfig.sites);
-    
     await saveConfig(false);
   });
   
@@ -155,9 +158,37 @@ function createSiteElement(site, index) {
 
 // 5. 配置保存
 async function saveConfig(showAlert = true) {
-  if (showAlert && editingIndex !== null) {
-    alert('请先点击下方的「确认修改」按钮来确认您的修改，然后再「保存配置」！');
+  const patternInput = document.getElementById('site-pattern');
+  const patternValue = patternInput ? patternInput.value.trim() : '';
+  if (showAlert && patternValue !== '') {
+    if (editingIndex !== null) {
+      alert('检测到您有正在修改的配置未提交，请先点击下方的「确认修改」按钮应用您的修改，然后再「保存配置」！');
+    } else {
+      alert('检测到您有正在编辑的配置未提交，请先点击下方的「添加配置项」按钮提交配置项，然后再「保存配置」！');
+    }
     return;
+  }
+
+  if (showAlert && editingIndex !== null) {
+    alert('请先点击下方的「确认修改」按钮来应用您的修改，然后再进行保存！');
+    return;
+  }
+
+  const hasSavedSites = currentConfig && currentConfig.sites && currentConfig.sites.length > 0;
+
+  if (!hasSavedSites) {
+    if (hasOriginalSites) {
+      if (showAlert) {
+        const confirmClear = confirm('⚠️ 高危提醒：\n\n检测到您清空了所有配置。保存后，扩展将停止后台的所有持续监测任务。\n\n是否确认清空并停用扩展功能？');
+        if (!confirmClear) return; 
+      }
+      hasOriginalSites = false; 
+    } else {
+      if (showAlert) {
+        alert('保存失败：您尚未配置任何网站！请先在上方表单中填写并点击「添加网站」。');
+      }
+      return;
+    }
   }
 
   const checkInterval = parseInt(document.getElementById('check-interval').value) || 5;
@@ -169,47 +200,61 @@ async function saveConfig(showAlert = true) {
   });
   
   if (showAlert) {
-    alert('配置已保存！扩展将在后台为您持续监测');
+    const isClose = confirm('配置已保存！扩展将在后台为您持续监测。\n\n是否需要关闭当前设置页面？');
+    if (isClose) {
+      window.close(); 
+    }
   }
 }
 
 // 6. 立即执行检查
 async function runImmediateCheck() {
-  // a. 抓取当前输入框和勾选框里的最新内容
   const patternInput = document.getElementById('site-pattern');
   const urlInput = document.getElementById('site-url');
   const pattern = patternInput.value.trim();
   const url = urlInput.value.trim() || pattern.replace(/\*.*$/, '');
 
   let tempSite = null;
+  let isTargetActive = false;
+
   if (pattern) {
     const hasValidScheme = pattern.includes('://') && !pattern.startsWith('://');
     if (!hasValidScheme) {
       alert('测试失败：输入的匹配表达式格式不正确，必须包含协议头（如 https://）');
       return;
     }
+    isTargetActive = document.getElementById('site-active').checked;
     tempSite = {
       pattern,
       url,
       pinned: document.getElementById('site-pinned').checked,
-      active: document.getElementById('site-active').checked
+      active: isTargetActive
     };
+  } else if (currentConfig && currentConfig.sites && currentConfig.sites.length > 0) {
+    isTargetActive = currentConfig.sites.some(s => s.active);
   }
 
-  // b. 校验配置
   const hasSavedSites = currentConfig && currentConfig.sites && currentConfig.sites.length > 0;
   if (!hasSavedSites && !tempSite) {
-    alert('没有配置任何网页。请先在输入框填写内容，或者添加好网站后再进行测试。');
+    alert('未检测到任何有效配置。请先在输入框填写内容，或者添加URL后再进行测试。');
     return;
   }
 
-  // c. 检查所有配置
-  await chrome.runtime.sendMessage({ 
+  chrome.runtime.sendMessage({ 
     action: 'runManualCheck',
-    tempSite: tempSite
+    tempSite: tempSite,
+    forceBackground: true 
+  }, (response) => {
+    
+    if (isTargetActive && response && response.tabId) {
+      const goNow = confirm('检查测试完成！\n\n检测到您有在前台打开的标签页，是否确定立刻前往该标签页查看？');
+      if (goNow) {
+        chrome.tabs.update(response.tabId, { active: true });
+      }
+    } else {
+      alert('检查测试完成！请检查标签页打开情况');
+    }
   });
-  
-  alert('检查测试完成！请查看浏览器标签页是否符合您的预期。');
 }
 
 // 7. 文本截断辅助函数
