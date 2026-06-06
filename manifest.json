@@ -3,7 +3,7 @@
   "name": "Smart Tab Pinner",
   "version": "1.0.1",
   "author": "去年夏天",
-  "description": "定期检查指定标签页是否被打开",
+  "description": "定期检测并自动打开或固定指定标签页。支持通配符模糊匹配，支持前后台灵活唤醒，防止重要网页被误关闭。",
   "permissions": ["tabs", "storage", "alarms"],
   "background": {
     "service_worker": "background.js", 

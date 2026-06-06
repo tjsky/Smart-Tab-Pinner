@@ -29,6 +29,20 @@ header {
     border-bottom: 1px solid var(--border-color);
 }
 
+.header-brand-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 6px;
+}
+
+.extension-logo {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+    user-select: none;
+}
+
 h1 {
     font-size: 24px;
     font-weight: 500;

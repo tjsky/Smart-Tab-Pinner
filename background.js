@@ -1,6 +1,6 @@
-// 1. 空配置避免自动创建标签页
+// 1. 空配置
 const DEFAULT_CONFIG = {
-  sites: [], // 初始为空数组
+  sites: [], 
   checkInterval: 5
 };
 

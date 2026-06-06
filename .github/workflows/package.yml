@@ -1,0 +1,54 @@
+name: 打包 Chrome 扩展
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch: 
+  
+permissions:
+  contents: write
+
+jobs:
+  pack-extension:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: 打包扩展程序文件
+        run: |
+          mkdir -p build
+          zip -r build/smart-tab-pinner-${{ github.ref_name }}.zip . \
+            -x "*.git*" \
+            -x "*.github*" \
+            -x ".vscode/*" \
+            -x ".idea/*" \
+            -x "*.pem" \
+            -x "*.crx" \
+            -x "*.log" \
+            -x "build/*" \
+            -x ".gitignore" \
+            -x ".gitattributes" \
+            -x "README.md" \
+            -x "LICENSE"
+      - name: 发布到 GitHub Releases
+        uses: softprops/action-gh-release@v2
+        with:
+          files: build/smart-tab-pinner-${{ github.ref_name }}.zip
+          name: Smart Tab Pinner ${{ github.ref_name }}
+          tag_name: ${{ github.ref_name }}
+          body: |
+            ##  Smart Tab Pinner 版本 ${{ github.ref_name }} 发布
+            
+            ### 扩展下载/安装指南
+            1. 在下方资源列表中下载 `smart-tab-pinner-${{ github.ref_name }}.zip` 。
+            2. 将`smart-tab-pinner-${{ github.ref_name }}`文件夹解压到一个你喜欢的位置。
+            3. 打开 Chrome 浏览器，在地址栏输入 `chrome://extensions/` 进入扩展管理页面。
+            4. 开启页面右上角的 “开发者模式”。
+            5. 点击左上角的 “加载已解压的扩展程序” ，选择本扩展所在的目录（即 `smart-tab-pinner-${{ github.ref_name }}` 文件夹）。
+            
+            
+          draft: false
+          prerelease: false
