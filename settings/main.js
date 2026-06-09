@@ -35,13 +35,13 @@ async function addNewSite() {
   const url = urlInput.value.trim() || pattern.replace(/\*.*$/, '');
   
   if (!pattern || !url) {
-    alert('请提供URL匹配表达式');
+    showToast('请提供URL匹配表达式');
     return;
   }
 
   const hasValidScheme = pattern.includes('://') && !pattern.startsWith('://');
   if (!hasValidScheme) {
-    alert('请输入合法的URL匹配表达式！\n比如您是否遗漏了协议头，如：\n- https://*.google.com/*\n- chrome-extension://abcdefg/*');
+    showToast('请输入合法的URL匹配表达式！\n比如您是否遗漏了协议头，如：\n- https://*.google.com/*\n- chrome-extension://abcdefg/*');
     return;
   }
   
@@ -74,7 +74,7 @@ async function addNewSite() {
 
   if (isEditMode) {
     await saveConfig(false); 
-    alert('修改成功！新配置已自动保存并生效。');
+    showToast('修改成功！新配置已自动保存并生效。');
   }
 }
 
@@ -142,7 +142,7 @@ function createSiteElement(site, index) {
 
   element.querySelector('.action-delete').addEventListener('click', async () => {
     if (editingIndex === index) {
-      alert('该条配置正在编辑中，请先确认修改或刷新页面后再操作！');
+      showToast('该条配置正在编辑中，请先确认修改或刷新页面后再操作！');
       return;
     }
     currentConfig.sites.splice(index, 1);
@@ -162,15 +162,15 @@ async function saveConfig(showAlert = true) {
   const patternValue = patternInput ? patternInput.value.trim() : '';
   if (showAlert && patternValue !== '') {
     if (editingIndex !== null) {
-      alert('检测到您有正在修改的配置未提交，请先点击下方的「确认修改」按钮应用您的修改，然后再「保存配置」！');
+      showToast('检测到您有正在修改的配置未提交，请先点击下方的「确认修改」按钮应用您的修改，然后再「保存配置」！');
     } else {
-      alert('检测到您有正在编辑的配置未提交，请先点击下方的「添加配置项」按钮提交配置项，然后再「保存配置」！');
+      showToast('检测到您有正在编辑的配置未提交，请先点击下方的「添加配置项」按钮提交配置项，然后再「保存配置」！');
     }
     return;
   }
 
   if (showAlert && editingIndex !== null) {
-    alert('请先点击下方的「确认修改」按钮来应用您的修改，然后再进行保存！');
+    showToast('请先点击下方的「确认修改」按钮来应用您的修改，然后再进行保存！');
     return;
   }
 
@@ -185,7 +185,7 @@ async function saveConfig(showAlert = true) {
       hasOriginalSites = false; 
     } else {
       if (showAlert) {
-        alert('保存失败：您尚未配置任何网站！请先在上方表单中填写并点击「添加网站」。');
+        showToast('保存失败：您尚未配置任何网站！请先在上方表单中填写并点击「添加网站」。');
       }
       return;
     }
@@ -220,7 +220,7 @@ async function runImmediateCheck() {
   if (pattern) {
     const hasValidScheme = pattern.includes('://') && !pattern.startsWith('://');
     if (!hasValidScheme) {
-      alert('测试失败：输入的匹配表达式格式不正确，必须包含协议头（如 https://）');
+      showToast('测试失败：输入的匹配表达式格式不正确，必须包含协议头（如 https://）');
       return;
     }
     isTargetActive = document.getElementById('site-active').checked;
@@ -236,7 +236,7 @@ async function runImmediateCheck() {
 
   const hasSavedSites = currentConfig && currentConfig.sites && currentConfig.sites.length > 0;
   if (!hasSavedSites && !tempSite) {
-    alert('未检测到任何有效配置。请先在输入框填写内容，或者添加URL后再进行测试。');
+    showToast('未检测到任何有效配置。请先在输入框填写内容，或者添加URL后再进行测试。');
     return;
   }
 
@@ -252,7 +252,7 @@ async function runImmediateCheck() {
         chrome.tabs.update(response.tabId, { active: true });
       }
     } else {
-      alert('检查测试完成！请检查标签页打开情况');
+      showToast('检查测试完成！请检查标签页打开情况');
     }
   });
 }
@@ -260,4 +260,17 @@ async function runImmediateCheck() {
 // 7. 文本截断辅助函数
 function truncateText(text, maxLength) {
   return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+}
+
+// 8. 通知函数
+function showToast(message) {
+  const toast = document.getElementById('toast-container');
+  if (!toast) return;
+
+  toast.textContent = message;
+  toast.className = 'toast-show';
+
+  setTimeout(() => {
+    toast.className = 'toast-hidden';
+  }, 3000);
 }
