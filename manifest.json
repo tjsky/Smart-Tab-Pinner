@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Smart Tab Pinner",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "author": "去年夏天",
   "description": "定期检测并自动打开或固定指定标签页。支持通配符模糊匹配，支持前后台灵活唤醒，防止重要网页被误关闭。",
   "permissions": ["tabs", "storage", "alarms"],

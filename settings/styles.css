@@ -197,7 +197,7 @@ input[type="number"] {
     position: fixed;
     top: 20px;
     left: 50%;
-    transform: translateX(-50%) translateY(-20px); 
+    transform: translateX(-50%) translateY(-20px);
     background: #2c3e50;
     color: #ffffff;
     padding: 12px 24px;
@@ -206,11 +206,38 @@ input[type="number"] {
     font-size: 14px;
     z-index: 1000;
     opacity: 0;
-    transition: all 0.3s ease; 
-    pointer-events: none;      
+    transition: all 0.3s ease;
+    pointer-events: none;
 }
 
 #toast-container.toast-show {
     opacity: 1;
     transform: translateX(-50%) translateY(0);
+}
+
+.settings-footer {
+    margin-top: 50px;
+    padding: 24px 0;
+    border-top: 1px solid #eef2f5;
+    text-align: center;
+    font-size: 13px;
+    color: #94a3b8;
+}
+
+.settings-footer a {
+    color: #64748b;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+
+.settings-footer a:hover {
+    color: #1a73e8;
+    text-decoration: underline;
+}
+
+.settings-footer .footer-separator {
+    margin: 0 12px;
+    color: #cbd5e1;
+    user-select: none;
 }
